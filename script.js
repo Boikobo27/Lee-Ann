@@ -6,7 +6,107 @@ const closeButtons = Array.from(document.querySelectorAll('[data-close]'));
 // Leave it empty for the simple version. The selected answer will still be saved on the same device.
 const RESPONSE_WEBHOOK_URL = '';
 
+// Load the small polish stylesheet without needing to touch index.html again.
+function loadPolishStylesheet() {
+  const alreadyLoaded = document.querySelector('link[href="fixes.css"]');
+  if (alreadyLoaded) return;
+
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = `fixes.css?v=${Date.now()}`;
+  document.head.appendChild(link);
+}
+
+loadPolishStylesheet();
+
+const MUSIC_SOURCES = [
+  'assets/audio/music.mp3',
+  'assets/music.mp3',
+  'music.mp3',
+  'assets/audio/music.m4a',
+  'assets/audio/music.ogg',
+];
+
+function createMusicElement() {
+  let audio = document.getElementById('background-music');
+  if (audio) return audio;
+
+  audio = document.createElement('audio');
+  audio.id = 'background-music';
+  audio.preload = 'auto';
+  audio.loop = true;
+  audio.playsInline = true;
+
+  MUSIC_SOURCES.forEach((src) => {
+    const source = document.createElement('source');
+    source.src = src;
+    source.type = src.endsWith('.m4a') ? 'audio/mp4' : src.endsWith('.ogg') ? 'audio/ogg' : 'audio/mpeg';
+    audio.appendChild(source);
+  });
+
+  document.body.appendChild(audio);
+  return audio;
+}
+
+const backgroundMusic = createMusicElement();
+const musicToggle = document.createElement('button');
+musicToggle.className = 'music-toggle is-hidden';
+musicToggle.type = 'button';
+musicToggle.setAttribute('aria-label', 'Play music');
+musicToggle.setAttribute('aria-pressed', 'false');
+musicToggle.textContent = '♪';
+document.body.appendChild(musicToggle);
+
 let currentPage = 'welcome';
+let musicTried = false;
+let musicAvailable = true;
+
+function updateMusicButton() {
+  if (!musicAvailable) {
+    musicToggle.classList.add('is-hidden');
+    return;
+  }
+
+  musicToggle.classList.remove('is-hidden');
+  const isPlaying = !backgroundMusic.paused;
+  musicToggle.classList.toggle('is-playing', isPlaying);
+  musicToggle.setAttribute('aria-label', isPlaying ? 'Pause music' : 'Play music');
+  musicToggle.setAttribute('aria-pressed', String(isPlaying));
+  musicToggle.textContent = isPlaying ? 'Ⅱ' : '♪';
+}
+
+async function startMusic() {
+  if (!backgroundMusic || !musicAvailable) return;
+
+  musicTried = true;
+  backgroundMusic.volume = 0.28;
+
+  try {
+    await backgroundMusic.play();
+    updateMusicButton();
+  } catch (error) {
+    // Browsers block audio until the user taps something. The visible music button
+    // gives a clear second chance if the first attempt is blocked.
+    updateMusicButton();
+    console.info('Music could not start yet. Try tapping the music button.', error);
+  }
+}
+
+backgroundMusic.addEventListener('playing', updateMusicButton);
+backgroundMusic.addEventListener('pause', updateMusicButton);
+backgroundMusic.addEventListener('error', () => {
+  musicAvailable = false;
+  updateMusicButton();
+  console.info('No playable music file was found. Use assets/audio/music.mp3 for the safest path.');
+});
+
+musicToggle.addEventListener('click', async () => {
+  if (backgroundMusic.paused) {
+    await startMusic();
+  } else {
+    backgroundMusic.pause();
+  }
+});
 
 function showPage(pageName) {
   const target = pages.find((page) => page.dataset.page === pageName);
@@ -52,6 +152,10 @@ buttons.forEach((button) => {
   button.addEventListener('click', async () => {
     tapFeedback(button);
 
+    if (!musicTried) {
+      startMusic();
+    }
+
     const selectedOption = button.dataset.response;
     const nextPage = button.dataset.next;
 
@@ -84,4 +188,5 @@ closeButtons.forEach((button) => {
   });
 });
 
+updateMusicButton();
 showPage(currentPage);
