@@ -16,11 +16,93 @@ const flowPages = ['welcome', 'thank-you', 'liked-most', 'how-i-see-you', 'what-
 // Leave it empty for the simple version. The selected answer will still be saved on the same device.
 const RESPONSE_WEBHOOK_URL = 'https://formspree.io/f/xrewqqek';
 
+const MUSIC_SOURCES = [
+  'assets/audio/best-part.mp3',
+  'assets/audio/music.mp3',
+  'assets/music.mp3',
+  'music.mp3',
+];
+
 let currentPage = 'welcome';
 let musicWanted = true;
 let musicHintDismissed = false;
 let openGuideDismissed = false;
+let currentMusicSourceIndex = 0;
+let triedMusicFallback = false;
 const pageHistory = [];
+
+function injectLandingPolish() {
+  if (document.querySelector('#landing-polish-style')) return;
+
+  const style = document.createElement('style');
+  style.id = 'landing-polish-style';
+  style.textContent = `
+    .page[data-page="welcome"] .page-inner {
+      height: 100%;
+      min-height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .page[data-page="welcome"] .welcome-action {
+      width: min(100%, 346px);
+      margin-top: auto;
+      flex: 0 0 auto;
+    }
+
+    .page[data-page="welcome"] .welcome-action .primary-button {
+      width: 100%;
+    }
+
+    .page[data-page="welcome"] .footer-note {
+      margin-top: 10px;
+      flex: 0 0 auto;
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+function normalisePath(path) {
+  return path.replace(/^\.\//, '').replace(/^\//, '');
+}
+
+function currentMusicPath() {
+  try {
+    const url = new URL(music.currentSrc || music.src, window.location.href);
+    return normalisePath(url.pathname.split('/').slice(-3).join('/'));
+  } catch {
+    return '';
+  }
+}
+
+function setMusicSource(index) {
+  if (!music || index >= MUSIC_SOURCES.length) return false;
+
+  currentMusicSourceIndex = index;
+  music.src = MUSIC_SOURCES[index];
+  music.preload = 'auto';
+  music.load();
+  return true;
+}
+
+function prepareMusic() {
+  if (!music) return;
+
+  music.preload = 'auto';
+
+  const existingPath = currentMusicPath();
+  const existingIndex = MUSIC_SOURCES.findIndex((source) => existingPath.endsWith(normalisePath(source)));
+
+  if (existingIndex >= 0) {
+    currentMusicSourceIndex = existingIndex;
+  } else if (!music.getAttribute('src')) {
+    setMusicSource(0);
+  }
+}
+
+injectLandingPolish();
+prepareMusic();
 
 if (progressDots) {
   progressDots.innerHTML = flowPages.map(() => '<span></span>').join('');
@@ -175,6 +257,15 @@ if (music && musicToggle) {
   music.addEventListener('pause', updateMusicButton);
   music.addEventListener('ended', updateMusicButton);
   music.addEventListener('error', () => {
+    const nextIndex = currentMusicSourceIndex + 1;
+
+    if (!triedMusicFallback && nextIndex < MUSIC_SOURCES.length) {
+      setMusicSource(nextIndex);
+      startMusicIfWanted();
+      return;
+    }
+
+    triedMusicFallback = true;
     musicToggle.classList.add('is-unavailable');
     musicToggle.setAttribute('aria-label', 'Add assets/audio/best-part.mp3 to enable music');
   });
