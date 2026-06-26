@@ -10,7 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
 
   <link rel="preload" as="image" href="assets/backgrounds/bg-landing.webp" type="image/webp">
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css?v=12" />
 </head>
 <body>
   <div class="background-orb orb-one" aria-hidden="true"></div>
@@ -32,6 +32,20 @@
   </div>
 
   <main class="app-shell" aria-live="polite">
+    <nav class="flow-nav" aria-label="Note navigation" hidden>
+      <button class="back-button" type="button" data-back aria-label="Go back">&#8249;</button>
+      <div class="progress-dots" aria-label="Progress through the note"></div>
+    </nav>
+    <audio id="site-music" preload="none" loop src="assets/audio/best-part.mp3"></audio>
+    <button class="music-toggle" type="button" data-music-toggle aria-label="Play background music" aria-pressed="false">
+      <span class="music-toggle-icon" aria-hidden="true"></span>
+    </button>
+    <div class="music-hint" data-music-hint role="dialog" aria-label="Music guide">
+      <p class="music-hint-text">Play something soft</p>
+      <button class="music-hint-close" type="button" data-music-hint-close aria-label="Hide music guide">&times;</button>
+      <span class="music-hint-arrow" aria-hidden="true"></span>
+    </div>
+
     <section class="page active" data-page="welcome">
       <div class="page-inner">
         <p class="eyebrow">A little something for when you get home</p>
@@ -41,7 +55,14 @@
           <p>I know this is a bit extra, but I wanted to say thank you in a way that feels like me.</p>
           <p>So before the night fully ends, open this properly 😌</p>
         </article>
-        <button class="primary-button" data-next="thank-you">Open it ✨</button>
+        <div class="welcome-action">
+          <div class="open-guide is-hidden" data-open-guide role="dialog" aria-label="Continue guide" aria-hidden="true">
+            <p class="open-guide-text">Tap Open it when you're ready</p>
+            <button class="open-guide-close" type="button" data-open-guide-close aria-label="Hide continue guide">&times;</button>
+            <span class="open-guide-arrow" aria-hidden="true"></span>
+          </div>
+          <button class="primary-button" data-next="thank-you" data-open-start>Open it ✨</button>
+        </div>
         <p class="footer-note">Made with care by BK 🤍</p>
       </div>
     </section>
@@ -68,16 +89,28 @@
         <p class="intro-text">It wasn’t just the date itself — it was you.</p>
         <div class="three-cards">
           <article class="mini-card">
-            <h2><span>♡</span>Your smile</h2>
-            <p>Yeah… that one deserves its own mention 😌</p>
+            <img class="card-illustration" src="assets/illustrations/card-smile.webp" alt="" loading="lazy" decoding="async">
+            <div class="mini-card-copy">
+              <h2>Your smile</h2>
+              <p>Yeah… that one deserves its own mention 😌</p>
+            </div>
+            <span class="card-heart" aria-hidden="true">♥</span>
           </article>
           <article class="mini-card">
-            <h2><span>♡</span>Your energy</h2>
-            <p>Soft, calm, and easy to be around.</p>
+            <img class="card-illustration" src="assets/illustrations/card-energy.webp" alt="" loading="lazy" decoding="async">
+            <div class="mini-card-copy">
+              <h2>Your energy</h2>
+              <p>Soft, calm, and easy to be around.</p>
+            </div>
+            <span class="card-heart" aria-hidden="true">♥</span>
           </article>
           <article class="mini-card">
-            <h2><span>♡</span>Your presence</h2>
-            <p>You made simple moments feel better.</p>
+            <img class="card-illustration" src="assets/illustrations/card-presence.webp" alt="" loading="lazy" decoding="async">
+            <div class="mini-card-copy">
+              <h2>Your presence</h2>
+              <p>You made simple moments feel better.</p>
+            </div>
+            <span class="card-heart" aria-hidden="true">♥</span>
           </article>
         </div>
         <button class="primary-button" data-next="how-i-see-you">There’s more 😊</button>
@@ -162,6 +195,6 @@
     </section>
   </main>
 
-  <script src="script.js"></script>
+  <script src="script.js?v=12"></script>
 </body>
 </html>
